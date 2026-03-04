@@ -70,8 +70,14 @@ async function fetchFGI() {
   return d.data?.[0];
 }
 
-// 4. GNews — needs free key (100 req/day)
+// 4. GNews — via serverless proxy (avoids CORS), falls back to direct call
 async function fetchNews(key) {
+  // Try serverless proxy first (works on Vercel deployment)
+  try {
+    const r = await fetch("/api/news");
+    if (r.ok) return r.json();
+  } catch {}
+  // Fallback: direct call (works locally with key)
   const q = encodeURIComponent("gold price OR oil price OR bitcoin OR Iran war OR stock market");
   const r = await fetch(
     `https://gnews.io/api/v4/search?q=${q}&lang=en&max=5&apikey=${key}`
